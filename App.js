@@ -1,20 +1,48 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
-
+import 'react-native-gesture-handler'
+//pages
+import Login from './pages/login';
+import ForgetPassword  from './pages/forgetpassword';
+import HomePage from './pages/home';
+//navi stack
+import RootStack from './navigators/RootStack';
+//keep user logged in
+import React,{useState} from 'react';
+import Apploading from 'expo-app-loading';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { CredentialContext } from './components/CredentialContext';
+//import "antd/dist/antd.css";
+//import style from 'App.module.css';
 export default function App() {
-  return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
-  );
+  const [appReady,setAppReady] = useState(false);
+  const [storedCredential,setStoredCredential] = useState('');
+  const checkLoginCredentials = () => {
+    AsyncStorage
+      .getItem('paramedicCredential')
+      .then((result)=>{
+        if (result != null){
+          setStoredCredential(JSON.parse(result));
+        }
+        else{
+          setStoredCredential(null);
+        }
+      })
+      .catch(error => console.log(error))
+  }
+  if(!appReady){
+    return(
+      <Apploading
+        startAsync={checkLoginCredentials}
+        onFinish={()=>setAppReady(true)}
+        onError= {console.warn}
+      />
+    )
+  }
+
+  return(
+    <CredentialContext.Provider value={{storedCredential,setStoredCredential}}>
+      <RootStack />
+    </CredentialContext.Provider>
+  ) 
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
